@@ -74,15 +74,7 @@ func (m *concurrentMap) Iterate() <-chan any {
 		return keys
 	}()
 
-	ch := make(chan any)
-	go func() {
-		for _, k := range keys {
-			ch <- k
-		}
-		close(ch)
-	}()
-
-	return ch
+	return makeChan(keys)
 }
 
 func (m *concurrentMap) IterateValues() <-chan any {
@@ -99,9 +91,13 @@ func (m *concurrentMap) IterateValues() <-chan any {
 		return values
 	}()
 
+	return makeChan(values)
+}
+
+func makeChan(items []any) <-chan any {
 	ch := make(chan any)
 	go func() {
-		for _, v := range values {
+		for _, v := range items {
 			ch <- v
 		}
 		close(ch)
