@@ -61,37 +61,35 @@ func (m *concurrentMap) Get(key any) any {
 }
 
 func (m *concurrentMap) Iterate() <-chan any {
-	keys := func() []any {
-		// snapshot all the keys. this o(N) operation
-		// for both memory and time
-		m.lock.RLock()
-		defer m.lock.RUnlock()
-
-		keys := make([]any, 0, m.entries.Size())
-		for k := range m.entries.Iterate() {
-			keys = append(keys, k)
-		}
-		return keys
-	}()
+	keys := m.copyEntries(true)
 
 	return makeChan(keys)
 }
 
 func (m *concurrentMap) IterateValues() <-chan any {
-	values := func() []any {
-		// snapshot all the values. this o(N) operation
-		// for both memory and time
-		m.lock.RLock()
-		defer m.lock.RUnlock()
-
-		values := make([]any, 0, m.entries.Size())
-		for v := range m.entries.IterateValues() {
-			values = append(values, v)
-		}
-		return values
-	}()
+	values := m.copyEntries(false)
 
 	return makeChan(values)
+}
+
+func (m *concurrentMap) copyEntries(keys bool) []any {
+	// snapshot all the values. this o(N) operation
+	// for both memory and time
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+
+	items := make([]any, 0, m.entries.Size())
+	if keys {
+		for k := range m.entries.Iterate() {
+			items = append(items, k)
+		}
+	} else {
+		for v := range m.entries.IterateValues() {
+			items = append(items, v)
+		}
+	}
+
+	return items
 }
 
 func makeChan(items []any) <-chan any {
