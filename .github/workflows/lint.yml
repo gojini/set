@@ -1,0 +1,26 @@
+on:
+  push:
+    branches: 
+      - main
+  pull_request:
+    branches:
+      - main
+
+name: lint
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Check out source code
+        uses: actions/checkout@v4
+
+      - name: Run lint
+        timeout-minutes: 30
+        run: |
+          cd $GITHUB_WORKSPACE && make task && make lint

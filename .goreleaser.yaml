@@ -1,0 +1,11 @@
+version: 2
+
+release:
+  prerelease: auto
+  draft: false
+
+env:
+  - CGO_ENABLED=0
+
+builds:
+  - skip: true
